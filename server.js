@@ -1,5 +1,3 @@
-const fs = require('fs');
-const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -34,15 +32,8 @@ app.use(cors());
 // Parse JSON request bodies
 app.use(express.json());
 
-// Ensure local 'uploads' directory exists for multer images
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log(`Created missing uploads directory at: ${uploadsDir}`);
-}
 
-// Serve /uploads folder statically for product images
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // Mount API Route Endpoints
 app.use('/api/auth', authRoutes);

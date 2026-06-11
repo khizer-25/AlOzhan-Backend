@@ -1,38 +1,42 @@
-const path = require('path');
 const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinary');
 
-// Configure disk storage
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename(req, file, cb) {
-    cb(
-      null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-    );
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'al-ozhan-products',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    public_id: (req, file) =>
+      `${file.fieldname}-${Date.now()}`,
   },
 });
 
-// File filter (only allow images)
 function checkFileType(file, cb) {
-  const filetypes = /jpg|jpeg|png|webp/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
+  const filetypes = /jpeg|jpg|png|webp/;
 
-  if (extname && mimetype) {
-    return cb(null, true);
-  } else {
+const extname = filetypes.test(
+  require('path').extname(file.originalname).toLowerCase()
+);
+
+const mimetype = filetypes.test(file.mimetype);
+
+ if (mimetype && extname) {
+  return cb(null, true);
+ }
+  else {
     cb(new Error('Images only (jpg, jpeg, png, webp)!'));
   }
 }
 
 const upload = multer({
   storage,
-  fileFilter: function (req, file, cb) {
+  fileFilter(req, file, cb) {
     checkFileType(file, cb);
   },
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
 });
 
 module.exports = upload;
