@@ -21,6 +21,15 @@ const reviewSchema = new mongoose.Schema(
       required: true,
       ref: 'User',
     },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'hidden'],
+      default: 'approved',
+    },
+    reply: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,
@@ -67,6 +76,44 @@ const productSchema = new mongoose.Schema(
       required: [true, 'Please add stock count'],
       default: 0,
     },
+    reservedStock: {
+      type: Number,
+      default: 0,
+    },
+    soldStock: {
+      type: Number,
+      default: 0,
+    },
+    lowStockThreshold: {
+      type: Number,
+      default: 10,
+    },
+    topNotes: {
+      type: [String],
+      default: [],
+    },
+    middleNotes: {
+      type: [String],
+      default: [],
+    },
+    baseNotes: {
+      type: [String],
+      default: [],
+    },
+    family: {
+      type: String,
+      enum: ['Woody', 'Fresh', 'Citrus', 'Floral', 'Oriental', 'Aquatic', 'Spicy'],
+      default: 'Floral',
+    },
+    gender: {
+      type: String,
+      enum: ['Men', 'Women', 'Unisex'],
+      default: 'Unisex',
+    },
+    occasions: {
+      type: [String],
+      default: [],
+    },
     rating: {
       type: Number,
       required: true,
@@ -78,6 +125,10 @@ const productSchema = new mongoose.Schema(
       default: 0,
     },
     reviews: [reviewSchema],
+    embedding: {
+  type: [Number],
+  default: [],
+},
   },
   {
     timestamps: true,
