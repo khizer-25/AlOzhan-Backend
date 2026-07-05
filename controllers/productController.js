@@ -1,10 +1,5 @@
 const Product = require('../models/Product');
-const {
-  generateProductEmbedding,
-} = require("../services/productEmbeddingService");
-// @desc    Fetch all products with optional filters, search, and pagination
-// @route   GET /api/products
-// @access  Public
+
 const getProducts = async (req, res, next) => {
   try {
     const pageSize = Number(req.query.pageSize) || 8;
@@ -29,9 +24,10 @@ const getProducts = async (req, res, next) => {
 
     const count = await Product.countDocuments(filter);
     const products = await Product.find(filter)
-      .limit(pageSize)
-      .skip(pageSize * (page - 1))
-      .sort({ createdAt: -1 });
+  .select("-embedding")
+  .limit(pageSize)
+  .skip(pageSize * (page - 1))
+  .sort({ createdAt: -1 });
 
     res.json({
       products,
@@ -49,7 +45,7 @@ const getProducts = async (req, res, next) => {
 // @access  Public
 const getProductById = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).select("-embedding");
 
     if (product) {
       res.json(product);
@@ -104,7 +100,7 @@ const createProduct = async (req, res, next) => {
       gender: gender || 'Unisex',
       occasions: occasions || [],
     });
-    product.embedding = await generateProductEmbedding(product);
+    
     const createdProduct = await product.save();
     res.status(201).json(createdProduct);
   } catch (error) {
@@ -151,7 +147,6 @@ const updateProduct = async (req, res, next) => {
       product.gender = gender || product.gender;
       product.occasions = occasions !== undefined ? occasions : product.occasions;
 
-      product.embedding = await generateProductEmbedding(product);
       const updatedProduct = await product.save();
       res.json(updatedProduct);
     } else {
