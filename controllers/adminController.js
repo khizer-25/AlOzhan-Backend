@@ -7,10 +7,11 @@ const Settings = require('../models/Settings');
 const bcrypt = require('bcryptjs');
 
 // Helper to check user permission
-const checkRBAC = (req, res, allowedRoles) => {
+const checkRBAC = (req, allowedRoles) => {
   if (!req.user || !allowedRoles.includes(req.user.role)) {
-    res.status(403);
-    throw new Error('Access denied. Insufficient permissions for this role.');
+    const err = new Error('Access denied. Insufficient permissions for this role.');
+    err.statusCode = 403;
+    throw err;
   }
 };
 
@@ -63,10 +64,10 @@ const adjustInventory = async (req, res, next) => {
         throw new Error('Insufficient stock count available to reduce');
       }
       product.countInStock -= qtyChange;
-    } else if (action === 'Adjustment') {
-      qtyChange = qtyChange - product.countInStock;
-      product.countInStock = Number(quantity);
-    }
+   } else if (action === 'Adjustment') {
+  qtyChange = Number(quantity) - product.countInStock;
+  product.countInStock = Number(quantity);
+}
 
     await product.save();
 
@@ -189,9 +190,8 @@ const resetCustomerPassword = async (req, res, next) => {
       res.status(404);
       throw new Error('Customer not found');
     }
-
-    user.password = newPassword;
-    await user.save();
+   const salt = await bcrypt.genSalt(10);
+user.password = await bcrypt.hash(newPassword, salt);
 
     res.json({ message: 'Customer password updated successfully' });
   } catch (error) {
