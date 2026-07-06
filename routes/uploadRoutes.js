@@ -17,6 +17,7 @@ router.post('/', protect, admin, (req, res) => {
     res.status(201).json({
       message: 'Image uploaded successfully',
       image: req.file.path,
+      public_id: req.file.filename, 
     });
   });
 });

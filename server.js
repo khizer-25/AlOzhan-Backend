@@ -1,9 +1,12 @@
+const dotenv = require('dotenv');
+dotenv.config();
+
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const dotenv = require('dotenv');
+
 const mongoose = require('mongoose');
 
 const connectDB = require('./config/db');
@@ -18,8 +21,6 @@ const contactRoutes = require('./routes/contactRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const ragRoutes = require("./routes/ragRoutes");
 
-// Load environment variables
-dotenv.config();
 
 // Connect to Database
 connectDB();
