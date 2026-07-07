@@ -7,12 +7,17 @@ const ai = new GoogleGenAI({
 });
 
 const generateEmbedding = async (text) => {
-  const response = await ai.models.embedContent({
-    model: "gemini-embedding-001",
-    contents: text,
-  });
+  try {
+    const response = await ai.models.embedContent({
+      model: "gemini-embedding-001",
+      contents: text,
+    });
 
-  return response.embeddings[0].values;
+    return response.embeddings[0].values;
+  } catch (error) {
+    console.error("Embedding Error:", error.message);
+    throw error;
+  }
 };
 
 module.exports = {

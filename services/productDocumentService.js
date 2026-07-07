@@ -13,10 +13,10 @@ Category: ${product.category}
 Price: ₹${product.price}
 Family: ${product.family}
 Gender: ${product.gender}
-Top Notes: ${product.topNotes.join(", ")}
-Middle Notes: ${product.middleNotes.join(", ")}
-Base Notes: ${product.baseNotes.join(", ")}
-Occasions: ${product.occasions.join(", ")}
+Top Notes: ${(product.topNotes || []).join(", ")}
+Middle Notes: ${(product.middleNotes || []).join(", ")}
+Base Notes: ${(product.baseNotes || []).join(", ")}
+Occasions: ${(product.occasions || []).join(", ")}
 Description: ${product.description}
 `
   }));
