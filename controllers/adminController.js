@@ -4,16 +4,7 @@ const Order = require('../models/Order');
 const InventoryHistory = require('../models/InventoryHistory');
 const ReturnRequest = require('../models/ReturnRequest');
 const Settings = require('../models/Settings');
-const bcrypt = require('bcryptjs');
 
-// Helper to check user permission
-const checkRBAC = (req, allowedRoles) => {
-  if (!req.user || !allowedRoles.includes(req.user.role)) {
-    const err = new Error('Access denied. Insufficient permissions for this role.');
-    err.statusCode = 403;
-    throw err;
-  }
-};
 
 // ==========================================
 // 1. INVENTORY MANAGEMENT
@@ -24,7 +15,6 @@ const checkRBAC = (req, allowedRoles) => {
 // @access  Private/Admin
 const getInventory = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'inventory_manager']);
 
     const products = await Product.find({}).select(
       'name brand category price countInStock reservedStock soldStock lowStockThreshold'
@@ -40,8 +30,7 @@ const getInventory = async (req, res, next) => {
 // @access  Private/Admin
 const adjustInventory = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'inventory_manager']);
-
+    
     const { productId, action, quantity } = req.body;
 
     if (!productId || !action || quantity === undefined) {
@@ -91,8 +80,7 @@ const adjustInventory = async (req, res, next) => {
 // @access  Private/Admin
 const getInventoryHistory = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'inventory_manager']);
-
+    
     const history = await InventoryHistory.find({})
       .populate('product', 'name brand')
       .populate('user', 'name role')
@@ -113,8 +101,7 @@ const getInventoryHistory = async (req, res, next) => {
 // @access  Private/Admin
 const getCustomers = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'customer_support']);
-
+    
     const customers = await User.find({ role: 'customer' }).select('-password');
     const orders = await Order.find({}).populate('user', 'email');
 
@@ -155,8 +142,7 @@ const getCustomers = async (req, res, next) => {
 // @access  Private/Admin
 const blockCustomer = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'customer_support']);
-
+  
     const user = await User.findById(req.params.id);
     if (!user) {
       res.status(404);
@@ -172,40 +158,15 @@ const blockCustomer = async (req, res, next) => {
   }
 };
 
-// @desc    Admin reset customer password
-// @route   PUT /api/admin/customers/:id/reset-password
-// @access  Private/Admin
-const resetCustomerPassword = async (req, res, next) => {
-  try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager']);
 
-    const { newPassword } = req.body;
-    if (!newPassword || newPassword.length < 6) {
-      res.status(400);
-      throw new Error('Password must be at least 6 characters long');
-    }
 
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      res.status(404);
-      throw new Error('Customer not found');
-    }
-   const salt = await bcrypt.genSalt(10);
-user.password = await bcrypt.hash(newPassword, salt);
-
-    res.json({ message: 'Customer password updated successfully' });
-  } catch (error) {
-    next(error);
-  }
-};
 
 // @desc    Issue a promo coupon to customer
 // @route   PUT /api/admin/customers/:id/coupon
 // @access  Private/Admin
 const issueCoupon = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'marketing_manager']);
-
+    
     const { couponCode } = req.body;
     if (!couponCode) {
       res.status(400);
@@ -218,7 +179,11 @@ const issueCoupon = async (req, res, next) => {
       throw new Error('Customer not found');
     }
 
-    if (user.coupons.includes(couponCode.toUpperCase())) {
+    if (!user.coupons) {
+  user.coupons = [];
+}
+
+if (user.coupons.includes(couponCode.toUpperCase())) {
       res.status(400);
       throw new Error('User already has this coupon issued');
     }
@@ -241,8 +206,7 @@ const issueCoupon = async (req, res, next) => {
 // @access  Private/Admin
 const getReviews = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'marketing_manager', 'customer_support']);
-
+    
     const products = await Product.find({}).select('name brand reviews');
     
     let allReviews = [];
@@ -275,8 +239,7 @@ const getReviews = async (req, res, next) => {
 // @access  Private/Admin
 const updateReviewStatus = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'marketing_manager', 'customer_support']);
-
+    
     const { productId, status } = req.body;
     if (!productId || !status) {
       res.status(400);
@@ -309,8 +272,7 @@ const updateReviewStatus = async (req, res, next) => {
 // @access  Private/Admin
 const replyToReview = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'marketing_manager', 'customer_support']);
-
+   
     const { productId, reply } = req.body;
     if (!productId || reply === undefined) {
       res.status(400);
@@ -375,8 +337,7 @@ const submitReturnRequest = async (req, res, next) => {
 // @access  Private/Admin
 const getReturns = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'customer_support']);
-
+   
     const returns = await ReturnRequest.find({})
       .populate('user', 'name email')
       .populate('order', 'totalPrice')
@@ -393,8 +354,7 @@ const getReturns = async (req, res, next) => {
 // @access  Private/Admin
 const updateReturnRequest = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'customer_support']);
-
+    
     const { status, refundAmount } = req.body;
     if (!status) {
       res.status(400);
@@ -440,8 +400,7 @@ const updateReturnRequest = async (req, res, next) => {
 // @access  Private/Admin
 const getPaymentAnalytics = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager']);
-
+    
     const orders = await Order.find({});
     
     // Aggregation maps
@@ -487,52 +446,11 @@ const getPaymentAnalytics = async (req, res, next) => {
 // @desc    Get all staff/admin accounts
 // @route   GET /api/admin/staff
 // @access  Private/Admin
-const getStaff = async (req, res, next) => {
-  try {
-    checkRBAC(req, res, ['super_admin', 'admin']);
 
-    const staffRoles = ['super_admin', 'admin', 'manager', 'inventory_manager', 'marketing_manager', 'customer_support'];
-    const staff = await User.find({ role: { $in: staffRoles } }).select('-password');
-    
-    res.json(staff);
-  } catch (error) {
-    next(error);
-  }
-};
 
 // @desc    Update employee access role
 // @route   PUT /api/admin/staff/:id/role
 // @access  Private/Admin
-const updateStaffRole = async (req, res, next) => {
-  try {
-    checkRBAC(req, res, ['super_admin', 'admin']);
-
-    const { role } = req.body;
-    if (!role) {
-      res.status(400);
-      throw new Error('Role parameter is required');
-    }
-
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      res.status(404);
-      throw new Error('Staff member not found');
-    }
-
-    // Safety: only Super Admin can edit Super Admin or Admin roles
-    if (user.role === 'super_admin' && req.user.role !== 'super_admin') {
-      res.status(403);
-      throw new Error('Only a Super Admin can modify another Super Admin.');
-    }
-
-    user.role = role;
-    await user.save();
-
-    res.json({ message: 'User role updated successfully', user });
-  } catch (error) {
-    next(error);
-  }
-};
 
 // ==========================================
 // 7. SYSTEM CONFIGURATION SETTINGS
@@ -543,8 +461,7 @@ const updateStaffRole = async (req, res, next) => {
 // @access  Private/Admin
 const getSettings = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'marketing_manager']);
-
+    
     let settings = await Settings.findOne({});
     if (!settings) {
       // Initialize defaults
@@ -562,8 +479,7 @@ const getSettings = async (req, res, next) => {
 // @access  Private/Admin
 const updateSettings = async (req, res, next) => {
   try {
-    checkRBAC(req, res, ['super_admin', 'admin', 'manager', 'marketing_manager']);
-
+   
     const { businessName, gstNumber, address, gstPercent, stateTax, logo, footerText, terms } = req.body;
 
     let settings = await Settings.findOne({});
@@ -593,7 +509,6 @@ module.exports = {
   getInventoryHistory,
   getCustomers,
   blockCustomer,
-  resetCustomerPassword,
   issueCoupon,
   getReviews,
   updateReviewStatus,
@@ -602,8 +517,6 @@ module.exports = {
   getReturns,
   updateReturnRequest,
   getPaymentAnalytics,
-  getStaff,
-  updateStaffRole,
   getSettings,
   updateSettings
 };

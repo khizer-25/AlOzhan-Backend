@@ -9,43 +9,67 @@ const protect = async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     try {
+
       // Get token from header
       token = req.headers.authorization.split(' ')[1];
 
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET
+      );
 
-      // Get user from the token (exclude password)
-      req.user = await User.findById(decoded.id).select('-password');
+      // Get user from token
+      req.user = await User.findById(decoded.id)
+        .select('-password');
+
 
       if (!req.user) {
-        res.status(401);
-        throw new Error('Not authorized, user not found');
+        return res.status(401).json({
+          message: "Not authorized, user not found"
+        });
       }
 
+
       next();
+
     } catch (error) {
+
       console.error(error);
-      res.status(401);
-      res.json({ message: 'Not authorized, token failed' });
+
+      return res.status(401).json({
+        message: "Not authorized, token failed"
+      });
+
     }
+
+  } else {
+
+    return res.status(401).json({
+      message: "Not authorized, no token provided"
+    });
+
   }
 
-  if (!token) {
-    res.status(401);
-    res.json({ message: 'Not authorized, no token provided' });
-  }
 };
+
 
 // Admin middleware
 const admin = (req, res, next) => {
-  const staffRoles = ['super_admin', 'admin', 'manager', 'inventory_manager', 'marketing_manager', 'customer_support'];
-  if (req.user && staffRoles.includes(req.user.role)) {
+
+  if (req.user && req.user.role === "admin") {
+
     next();
+
   } else {
-    res.status(403);
-    res.json({ message: 'Not authorized as an admin or staff member' });
+
+    return res.status(403).json({
+      message: "Admin access required"
+    });
+
   }
+
 };
+
 
 module.exports = { protect, admin };

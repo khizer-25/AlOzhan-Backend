@@ -24,10 +24,10 @@ const userSchema = new mongoose.Schema(
       minlength: [6, 'Password must be at least 6 characters long'],
     },
     role: {
-      type: String,
-      enum: ['customer', 'super_admin', 'admin', 'manager', 'inventory_manager', 'marketing_manager', 'customer_support'],
-      default: 'customer',
-    },
+  type: String,
+  enum: ['customer', 'admin'],
+  default: 'customer'
+},
     phone: {
       type: String,
       default: '',
