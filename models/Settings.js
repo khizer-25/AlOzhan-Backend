@@ -5,7 +5,7 @@ const settingsSchema = new mongoose.Schema(
     businessName: {
       type: String,
       required: true,
-      default: 'Al Özhan Parfums',
+      default: 'Al Ozhan Perfumes',
     },
     gstNumber: {
       type: String,
@@ -13,7 +13,7 @@ const settingsSchema = new mongoose.Schema(
     },
     address: {
       type: String,
-      default: 'Atelier House, Colaba, Mumbai, India',
+      default: 'Golconda Fort , Hyderabad',
     },
     gstPercent: {
       type: Number,
