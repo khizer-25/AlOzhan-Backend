@@ -503,6 +503,44 @@ const updateSettings = async (req, res, next) => {
   }
 };
 
+// ==========================================
+// BUSINESS ANALYTICS
+// ==========================================
+
+// @desc    Get dashboard analytics
+// @route   GET /api/admin/analytics
+// @access  Private/Admin
+
+const getAnalytics = async (req, res, next) => {
+  try {
+    const orders = await Order.find({});
+
+    let totalRevenue = 0;
+    let totalOrders = orders.length;
+    let totalSales = 0;
+
+    orders.forEach((order) => {
+      totalRevenue += order.totalPrice || 0;
+
+      order.orderItems.forEach((item) => {
+        totalSales += item.qty;
+      });
+    });
+
+    const averageOrderValue =
+      totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    res.json({
+      totalRevenue,
+      totalOrders,
+      totalSales,
+      averageOrderValue,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getInventory,
   adjustInventory,
@@ -517,6 +555,7 @@ module.exports = {
   getReturns,
   updateReturnRequest,
   getPaymentAnalytics,
+  getAnalytics,
   getSettings,
   updateSettings
 };

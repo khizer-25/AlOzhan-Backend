@@ -13,6 +13,7 @@ const {
   getReturns,
   updateReturnRequest,
   getPaymentAnalytics,
+  getAnalytics,
   getSettings,
   updateSettings
 } = require('../controllers/adminController');
@@ -47,5 +48,8 @@ router.get('/payments/analytics', protect,admin, getPaymentAnalytics);
 // System Configuration Settings
 router.get('/settings', protect, admin,getSettings);
 router.put('/settings', protect, admin, updateSettings);
+
+// Business Analytics
+router.get('/analytics', protect, admin, getAnalytics);
 
 module.exports = router;
